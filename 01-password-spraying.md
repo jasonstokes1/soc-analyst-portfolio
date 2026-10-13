@@ -1,16 +1,34 @@
-# Investigation 1: Password Spraying from a Public IP
+# Detection & Investigation: Password Spraying from a Public IP
 
-**Verdict:** True Positive (suspicious activity), no compromise
-**Tools:** Microsoft Sentinel, Microsoft Defender for Endpoint, KQL
-**MITRE ATT&CK:** T1110.003 Brute Force: Password Spraying
+**SOC investigation of an internet password-guessing campaign, caught by a Microsoft Sentinel analytics rule I built**: scoped with KQL across 7 days of logon telemetry, confirmed no account was compromised, and classified as a True Positive.
 
-## Summary
+`Microsoft Sentinel` · `Microsoft Defender for Endpoint` · `KQL` · `Detection Engineering` · `MITRE ATT&CK`
 
-A Sentinel analytics rule I built fired on repeated failed logins from public IP **80.66.83.43**. I confirmed about 520 failed logins across 11 devices over 7 days, all targeting the generic accounts "admin" and "administrator", with **no successful logins**. I classified it as a True Positive with no compromise and recommended blocking the IP.
+---
 
-## Detection
+## What happened
 
-I wrote this rule to catch password guessing from the internet:
+A public IP, **80.66.83.43**, made about **520 failed login attempts across 11 devices** in 7 days, targeting only the generic accounts `admin` and `administrator`. My detection rule raised an incident, and the investigation confirmed **no successful logins**.
+
+| Investigation question | Finding | Evidence |
+|---|---|---|
+| Is this a real attack? | **Yes**: automated password guessing from the internet | ~520 `LogonFailed` events from one public IP |
+| How wide was it? | **11 devices** targeted | `dcount(DeviceName)` over 7 days |
+| Which accounts? | Only `admin` and `administrator` | `make_set(AccountName)` |
+| Did anyone get in? | **No** | 0 `LogonSuccess` events from the IP |
+| Is it linked to another compromise? | **No**: a "similar" incident only shared this IP as an entity | Reviewed the related incident's alert sources |
+
+**Verdict:** True Positive (suspicious activity), no compromise. **Recommendation:** block the IP, keep RDP/SSH off the internet, enforce lockout and MFA.
+
+---
+
+## Skills demonstrated
+
+**Detection engineering** (custom Sentinel analytics rule: thresholds, entity mapping, alert grouping) · **incident triage** · **KQL pivoting** (`summarize`, `dcount`, `make_set`, `countif`) · **scoping across devices and time** · **verifying correlated incidents** rather than assuming · **MITRE ATT&CK mapping** (T1110.003).
+
+---
+
+## 1. Detection: the rule I built
 
 ```kql
 DeviceLogonEvents
@@ -28,13 +46,19 @@ DeviceLogonEvents
 | Severity | Medium | Failed guessing alone is not a breach |
 | Frequency | Every hour | Fast enough to catch active campaigns |
 | Alert grouping | By IP, 24 hours | One incident per attacker instead of dozens |
+| Entities | IP | Lets Sentinel link related incidents |
 
-<!-- Screenshot: the incident panel (blur tenant and subscription IDs) -->
+![Detection rule](screenshots/01-rule.png)
 
-## Investigation
+I also built a companion **High** rule that fires only when failures are **followed by a success** from the same IP (`Failed >= 5 and Success >= 1`), so a guess that works is escalated immediately.
 
-1. **Triage:** claimed the incident, reviewed severity and entities (the IP).
-2. **Scope:** pivoted to 7 days of logon activity from the IP:
+## 2. Triage
+
+Claimed the incident, reviewed severity and entities, and set status to Active.
+
+![Incident](screenshots/01-incident.png)
+
+## 3. Scoping: 7 days of activity from the IP
 
 ```kql
 DeviceLogonEvents
@@ -46,25 +70,23 @@ DeviceLogonEvents
     by ActionType
 ```
 
-3. **Findings:**
-   - About 520 `LogonFailed` events across 11 devices
-   - Only "admin" and "administrator" attempted
-   - **0** `LogonSuccess` events
-4. **Related incident check:** a "similar" incident shared this IP only as an entity. Its alerts came from a different source, so this IP did not cause that compromise.
+![Query results](screenshots/01-query-results.png)
 
-<!-- Screenshot: query results -->
+## 4. Related-incident check
 
-## Conclusion
+Sentinel listed a "similar" incident on another device. Its alerts came from a different source and the IP appeared only as a shared entity, so I did not link the two. **Similar means a shared entity, not the same attack.**
 
-Automated password guessing from an internet IP against common admin account names. No account was compromised.
+---
 
-**Recommendations:**
-- Block 80.66.83.43 at the network level
-- Keep RDP and SSH off the public internet (use Azure Bastion or a VPN)
-- Enforce account lockout and MFA
+## MITRE ATT&CK
 
-## What I learned
+| Tactic | Technique | Observed |
+|---|---|---|
+| Credential Access | T1110.003 Password Spraying | Common admin usernames tried across 11 devices |
 
-- Spraying and brute force look different in logs: many accounts with few tries each, versus one account with many tries.
-- "Similar incident" in Sentinel means a shared entity, not the same attack. Always verify.
-- A companion rule that looks for failures **followed by a success** catches the guesses that work. I built that rule next.
+## Lessons learned
+
+- **Spraying vs. brute force:** many accounts with few tries each slips under lockout thresholds; one account with many tries triggers them.
+- **Pair every "failed" rule with a "failed then succeeded" rule.** The second one is what catches the guess that works.
+
+<sub>Cyber-range exercise during my Cybersecurity Analyst internship at LOGN Pacific. Live internet traffic against lab VMs; no real victim.</sub>

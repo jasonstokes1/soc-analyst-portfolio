@@ -1,16 +1,34 @@
-# Investigation 3: Tool Download on a Linux Server
+# Investigation: Tool Download on a Linux Server (MITRE T1105)
 
-**Verdict:** Benign Positive (scheduled antivirus test)
-**Tools:** Microsoft Sentinel, Microsoft Defender for Endpoint, KQL
-**MITRE ATT&CK:** T1105 Ingress Tool Transfer (tactic: Command and Control)
+**SOC investigation of an Ingress Tool Transfer alert on an Ubuntu server**: a search that came up empty, a pivot to network telemetry, parent-process analysis and time correlation that separated a scheduled test from an intrusion.
 
-## Summary
+`Microsoft Sentinel` · `Microsoft Defender for Endpoint` · `KQL` · `Linux` · `MITRE ATT&CK`
 
-A Sentinel rule for **Ingress Tool Transfer** fired because `wget` on the Ubuntu server **linux-target-1** connected to external IP **89.238.73.97**. I found the download was the harmless **EICAR antivirus test file**, started by **Azure Run Command** on a fixed schedule, with nothing executed afterward.
+---
 
-## Investigation
+## What happened
 
-### 1. First attempt: search the commands for the IP
+A Sentinel rule fired because `wget` on **linux-target-1** connected to external IP **89.238.73.97**. The download was the harmless **EICAR antivirus test file**, pushed by **Azure Run Command** on a fixed schedule, and nothing was executed afterward.
+
+| Investigation question | Finding | Evidence |
+|---|---|---|
+| What was downloaded? | The EICAR test file, from `secure.eicar.org` over HTTPS, into `/tmp` | DeviceNetworkEvents: URL, port 443, command line |
+| Why didn't the IP appear in the command? | The command used a **domain name**; DNS resolved it to the IP | Empty result in DeviceProcessEvents, match in DeviceNetworkEvents |
+| Who started it? | **Azure Run Command** (via the Azure VM agent), not an SSH session | Parent: `run-command-extension` / `dash` |
+| Person or automation? | **Automation**: every run at `:24` past the hour across multiple days | Timestamps |
+| Was anything executed afterward? | **No**: nothing ran from `/tmp` in 7 days | `FolderPath` hunt |
+
+**Verdict:** Benign Positive, a scheduled antivirus test. The rule worked as designed.
+
+---
+
+## Skills demonstrated
+
+**Pivoting when a search returns nothing** · **network-to-process correlation** (DeviceNetworkEvents + DeviceProcessEvents) · **parent-process analysis** · **time correlation** · **Linux command-line analysis** (`wget`, `/tmp`, shells) · **threat hunting from multiple angles**.
+
+---
+
+## 1. First search: the IP in command lines
 
 ```kql
 DeviceProcessEvents
@@ -18,9 +36,9 @@ DeviceProcessEvents
 | where ProcessCommandLine contains "89.238.73.97"
 ```
 
-**No results.** That told me the command used a **domain name**, which DNS resolved to the IP, so the IP never appeared in the typed command.
+**No results.** The IP never appeared in the typed command, which pointed to a domain name resolved by DNS.
 
-### 2. Pivot to network events
+## 2. Pivot: network events
 
 ```kql
 DeviceNetworkEvents
@@ -33,12 +51,14 @@ DeviceNetworkEvents
 
 | Field | Value |
 |---|---|
-| RemoteUrl | secure.eicar.org |
+| RemoteUrl | `secure.eicar.org` |
 | Port | 443 (HTTPS) |
-| Account | root |
+| Account | `root` |
 | Command | `wget https://secure.eicar.org/eicar.com.txt -O /tmp/eicar.txt` |
 
-### 3. Who started it, and how often?
+![Network event](screenshots/03-network.png)
+
+## 3. Who started it, and how often?
 
 ```kql
 DeviceProcessEvents
@@ -48,10 +68,11 @@ DeviceProcessEvents
           InitiatingProcessFileName, InitiatingProcessParentFileName
 ```
 
-- **Parent:** `run-command-extension` (Azure Run Command, via the Azure VM agent), or `dash` (a shell it launches)
-- **Schedule:** every run happened at **:24 past the hour** on multiple days, which points to automation, not a person
+The parent was `run-command-extension` (Azure Run Command) or the `dash` shell it launches, and every run landed at **:24 past the hour**. An SSH login would show `sshd` → `bash` → `wget` instead.
 
-### 4. Did anything execute from /tmp afterward? (7 days)
+![Parent processes](screenshots/03-parents.png)
+
+## 4. Was anything executed from /tmp? (7 days)
 
 ```kql
 DeviceProcessEvents
@@ -59,15 +80,20 @@ DeviceProcessEvents
 | where FolderPath startswith "/tmp"
 ```
 
-**No results.** Nothing ran from /tmp, and `eicar.txt` is a text file, not a program.
+**No results.** `eicar.txt` is a text file, and no program ran from `/tmp`.
 
-## Conclusion
+---
 
-An authorized, scheduled Defender test pushed through Azure Run Command. The rule worked correctly, but no malicious activity occurred.
+## MITRE ATT&CK
 
-## What I learned
+| Tactic | Technique | Observed |
+|---|---|---|
+| Command and Control | T1105 Ingress Tool Transfer | `wget` download to `/tmp` (authorized test) |
 
-- **Pivot when a search comes up empty.** The IP lived in network records, not in the command line.
-- **Parent processes reveal the source.** Azure Run Command and an SSH login look very different (`sshd` → `bash` → `wget` would be an investigation).
-- **Exact, repeating times mean automation.**
-- **Hunt from several angles.** `FolderPath` catches programs run from /tmp however they were started; `ProcessCommandLine` catches scripts passed to a shell (`bash /tmp/x`).
+## Lessons learned
+
+- **An empty result is a clue.** The IP lived in network records, not the command line.
+- **Parent processes reveal the source.** Azure Run Command and an SSH session look very different.
+- **Hunt from several angles.** `FolderPath` catches programs run from `/tmp` however they're started; `ProcessCommandLine` catches scripts passed to a shell (`bash /tmp/x`).
+
+<sub>Cyber-range exercise during my Cybersecurity Analyst internship at LOGN Pacific. Authorized test activity; no real victim.</sub>
