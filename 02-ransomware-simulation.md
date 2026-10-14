@@ -28,32 +28,42 @@ A Sentinel alert flagged PowerShell on **windows-target-1** downloading scripts 
 
 ---
 
-## 1. Tracing the downloads (3 days)
+## 1. Tracing the downloads
 
 ```kql
 DeviceProcessEvents
+| where TimeGenerated > ago(1d)
 | where DeviceName startswith "windows-target"
+| where FileName =~ "cmd.exe"
 | where ProcessCommandLine contains "Invoke-WebRequest"
-| project TimeGenerated, AccountName, ProcessCommandLine,
-          InitiatingProcessCommandLine
+| extend Script = extract(@"entropy-gorilla/([^ ]+\.ps1)", 1, ProcessCommandLine)
+| project TimeGenerated, AccountName, Script,
+          StartedBy = InitiatingProcessCommandLine
 | order by TimeGenerated desc
+| take 6
 ```
 
-![Download activity](screenshots/02-downloads.png)
+One row per download, with the script name pulled out of the long command line. The six most recent rows show two 4-hour cycles: `pwncrypt.ps1` at :12, `eicar.ps1` at :24, `portscan.ps1` at :36, each started by a numbered `scriptNN.ps1` running as SYSTEM.
+
+<img src="screenshots/02-downloads.png" alt="Download activity" width="700">
 
 ## 2. Confirming encryption (1 day)
 
 ```kql
 DeviceFileEvents
+| where TimeGenerated > ago(1d)
 | where DeviceName startswith "windows-target"
 | where FileName contains "pwncrypt"
 | project TimeGenerated, ActionType, FileName, FolderPath
 | order by TimeGenerated desc
+| take 10
 ```
+
+The timeline is clear: `pwncrypt.ps1` lands in `C:\ProgramData` at 12:13:14, and **8 seconds later** tagged copies of business files appear on the user's Desktop and are renamed into `C:\Windows\Temp`. The same sequence repeats every 4 hours.
 
 18 files (CompanyFinancials, EmployeeRecords, ProjectList) were created on a user's Desktop and renamed with a `_pwncrypt` tag.
 
-![Encrypted files](screenshots/02-encrypted-files.png)
+<img src="screenshots/02-encrypted-files.png" alt="Encrypted files" width="700">
 
 ## 3. Attack chain
 
@@ -74,7 +84,9 @@ A real version of this case calls for isolating the device at once. I practiced 
 | Record | Action center logged the action | Comment, account and timestamp recorded |
 | Release | **Release from isolation**, with comment | Bastion reconnected |
 
-![Isolation in Action center](screenshots/02-isolation.png)
+Defender's Action center recorded both actions on Oct 12: **Isolate device** and **Stop isolation**, 10 minutes apart, both issued from the portal and both Completed.
+
+<img src="screenshots/02-isolation.png" alt="Isolation in Action center" width="700">
 
 ---
 
