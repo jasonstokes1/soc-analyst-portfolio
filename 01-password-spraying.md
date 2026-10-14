@@ -50,17 +50,17 @@ DeviceLogonEvents
 | Alert grouping | By IP, 24 hours | One incident per attacker instead of dozens |
 | Entities | IP | Lets Sentinel link related incidents |
 
-![Detection rule](screenshots/01-rule.png)
+<img src="screenshots/01-rule.png" alt="Detection rule" width="420">
 
 I also built a companion **High** rule that fires only when failures are **followed by a success** from the same IP (`Failed >= 5 and Success >= 1`), so a guess that works is escalated immediately.
 
-![Companion rule: successful brute force](screenshots/01-rule-success.png)
+<img src="screenshots/01-rule-success.png" alt="Companion rule: successful brute force" width="420">
 
 ## 2. Triage
 
 Claimed the incident, reviewed severity and entities, and set status to Active.
 
-![Incident](screenshots/01-incident.png)
+<img src="screenshots/01-incident.png" alt="Incident" width="420">
 
 ## 3. Scoping: 7 days of activity from the IP
 
@@ -74,7 +74,7 @@ DeviceLogonEvents
     by ActionType
 ```
 
-![Query results](screenshots/01-query-results.png)
+<img src="screenshots/01-query-results.png" alt="Query results" width="700">
 
 ## 4. Related-incident check
 
@@ -86,7 +86,7 @@ Sentinel listed a "similar" incident on another device. Its alerts came from a d
 
 Two days after I closed the case, I re-ran the scoping query. This time it returned **3 successful logons** for `administrator` from the same IP, on a device I hadn't seen before (`dataorg-dv-28m`, Oct 13, 20:28 UTC). The original verdict was correct at the time (0 successes through Oct 11). This was a **new compromise**.
 
-![Follow-up successes](screenshots/01-followup-success.png)
+<img src="screenshots/01-followup-success.png" alt="Follow-up successes" width="600">
 
 My companion "successful brute force" rule did **not** fire. Checking the breached device explained why:
 
@@ -131,7 +131,7 @@ Deployed as a new rule, **JPS - Password Spray with Success - Public IP** (High)
 | Entity | IP | Ties alerts to the attacker |
 | Alert grouping | By IP, 7 days | One incident per attacker instead of one per hour |
 
-![Password spray rule](screenshots/01-rule-spray.png)
+<img src="screenshots/01-rule-spray.png" alt="Password spray rule" width="420">
 
 The original brute-force rules stay in place: they catch a different pattern (many failures on one device).
 
