@@ -42,12 +42,16 @@ DeviceProcessEvents
 
 ```kql
 DeviceNetworkEvents
+| where TimeGenerated > ago(2d)
 | where DeviceName startswith "linux-target-1"
 | where RemoteIP == "89.238.73.97"
 | project TimeGenerated, RemoteIP, RemotePort, RemoteUrl,
-          InitiatingProcessAccountName, InitiatingProcessCommandLine,
-          InitiatingProcessParentFileName
+          InitiatingProcessAccountName, InitiatingProcessCommandLine
+| order by TimeGenerated desc
+| take 5
 ```
+
+Every connection lands at **:24 past the hour**, and one row shows the connection made directly by Azure's `run-command-extension`, an early clue to who was behind it.
 
 | Field | Value |
 |---|---|
@@ -56,21 +60,24 @@ DeviceNetworkEvents
 | Account | `root` |
 | Command | `wget https://secure.eicar.org/eicar.com.txt -O /tmp/eicar.txt` |
 
-![Network event](screenshots/03-network.png)
+<img src="screenshots/03-network.png" alt="Network event" width="700">
 
 ## 3. Who started it, and how often?
 
 ```kql
 DeviceProcessEvents
+| where TimeGenerated > ago(2d)
 | where DeviceName startswith "linux-target-1"
 | where ProcessCommandLine contains "eicar"
 | project TimeGenerated, ProcessCommandLine,
           InitiatingProcessFileName, InitiatingProcessParentFileName
+| order by TimeGenerated desc
+| take 5
 ```
 
 The parent was `run-command-extension` (Azure Run Command) or the `dash` shell it launches, and every run landed at **:24 past the hour**. An SSH login would show `sshd` → `bash` → `wget` instead.
 
-![Parent processes](screenshots/03-parents.png)
+<img src="screenshots/03-parents.png" alt="Parent processes" width="700">
 
 ## 4. Was anything executed from /tmp? (7 days)
 
