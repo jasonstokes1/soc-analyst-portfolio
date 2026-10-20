@@ -1,4 +1,4 @@
-# SOC Analyst Investigations: LOGN Pacific Internship
+# SOC Analyst Investigations: LOG(N) Pacific Internship
 
 **Alert-to-verdict investigations from my Cybersecurity Analyst internship at LOGN Pacific**: real alerts in a shared Azure environment, worked end to end with Microsoft Sentinel, Microsoft Defender for Endpoint, and KQL.
 
