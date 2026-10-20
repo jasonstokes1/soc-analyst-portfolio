@@ -1,6 +1,6 @@
 # SOC Analyst Investigations: LOG(N) Pacific Internship
 
-**Alert-to-verdict investigations from my Cybersecurity Analyst internship at LOGN Pacific**: real alerts in a shared Azure environment, worked end to end with Microsoft Sentinel, Microsoft Defender for Endpoint, and KQL.
+**Alert-to-verdict investigations from my Cybersecurity Analyst internship at LOG(N) Pacific**: real alerts in a shared Azure environment, worked end to end with Microsoft Sentinel, Microsoft Defender for Endpoint, and KQL.
 
 `Microsoft Sentinel` · `Microsoft Defender for Endpoint` · `KQL` · `Threat Intelligence` · `Incident Response` · `MITRE ATT&CK`
 

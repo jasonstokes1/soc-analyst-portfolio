@@ -149,4 +149,4 @@ The original brute-force rules stay in place: they catch a different pattern (ma
 - **Group by what the attacker controls.** Per-device thresholds miss spraying; grouping by attacker IP across devices catches it.
 - **Test the exact window a rule will use.** A 1-day lookback would have missed the very attack the new rule was built for.
 
-<sub>Cyber-range exercise during my Cybersecurity Analyst internship at LOGN Pacific. Live internet traffic against lab VMs; no real victim.</sub>
+<sub>Cyber-range exercise during my Cybersecurity Analyst internship at LOG(N) Pacific. Live internet traffic against lab VMs; no real victim.</sub>

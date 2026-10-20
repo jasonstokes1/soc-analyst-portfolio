@@ -103,4 +103,4 @@ DeviceProcessEvents
 - **Parent processes reveal the source.** Azure Run Command and an SSH session look very different.
 - **Hunt from several angles.** `FolderPath` catches programs run from `/tmp` however they're started; `ProcessCommandLine` catches scripts passed to a shell (`bash /tmp/x`).
 
-<sub>Cyber-range exercise during my Cybersecurity Analyst internship at LOGN Pacific. Authorized test activity; no real victim.</sub>
+<sub>Cyber-range exercise during my Cybersecurity Analyst internship at LOG(N) Pacific. Authorized test activity; no real victim.</sub>

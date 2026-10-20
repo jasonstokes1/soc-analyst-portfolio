@@ -96,4 +96,4 @@ Defender's Action center recorded both actions on Oct 12: **Isolate device** and
 - **Fixed schedules mean automation.** Every 4 hours at :12, :24 and :36 is a job, not a person.
 - **Context decides the verdict.** The same evidence is benign in a sanctioned simulation and critical in production, so I documented both.
 
-<sub>Cyber-range exercise during my Cybersecurity Analyst internship at LOGN Pacific. Authorized attack simulation; no real victim.</sub>
+<sub>Cyber-range exercise during my Cybersecurity Analyst internship at LOG(N) Pacific. Authorized attack simulation; no real victim.</sub>
