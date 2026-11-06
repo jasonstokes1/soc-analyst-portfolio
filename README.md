@@ -8,13 +8,13 @@
 
 ## Investigations
 
-| | Investigation | Platform | Verdict | MITRE ATT&CK |
-|---|---|---|---|---|
-| 🔐 | **[Password Spraying from a Public IP](01-password-spraying.md)**: caught by a rule I built; a re-check found a later compromise my rules missed, so I built a new rule to close the gap | Windows | True Positive | T1110.003 |
-| 💣 | **[Ransomware Attack Chain + Device Isolation](02-ransomware-simulation.md)** | Windows | Benign Positive (simulation); critical in production | T1053 · T1059.001 · T1105 · T1486 |
-| 🐧 | **[Tool Download on a Linux Server](03-linux-tool-download.md)** | Linux | Benign Positive (scheduled test) | T1105 |
-| 🧨 | **[A Stolen Admin Password, a Disguised Hacking Tool, and a Detection Gap](04-password-spray-to-malware.md)**: one IP guessed the admin password on 5 servers; four others used it; a brute-force tool disguised as Chrome turned a server into an attacker | Windows | True Positive | T1110.003 · T1078 · T1021.001 · T1036.005 · T1070.004 |
-| 📥 | **[30 Incidents, 19 Attackers, 1 Noisy Rule: Triaging a Password-Spray Queue](05-triage-and-tuning-password-spray-queue.md)**: paused the alert flood, investigated one incident end to end, triaged the rest by attacker (19 IPs, 21 servers broken into), then fixed my rule so one break-in creates one alert instead of up to 168 | Windows | True Positive | T1110.003 · T1078 · T1021.001 · T1057 |
+| Investigation | Platform | Verdict | MITRE ATT&CK |
+|---|---|---|---|
+| **[Password Spraying from a Public IP](01-password-spraying.md)**: caught by a rule I built; a re-check found a later compromise my rules missed, so I built a new rule to close the gap | Windows | True Positive | T1110.003 |
+| **[Ransomware Attack Chain + Device Isolation](02-ransomware-simulation.md)** | Windows | Benign Positive (simulation); critical in production | T1053 · T1059.001 · T1105 · T1486 |
+| **[Tool Download on a Linux Server](03-linux-tool-download.md)** | Linux | Benign Positive (scheduled test) | T1105 |
+| **[A Stolen Admin Password, a Disguised Hacking Tool, and a Detection Gap](04-password-spray-to-malware.md)**: one IP guessed the admin password on 5 servers; four others used it; a brute-force tool disguised as Chrome turned a server into an attacker | Windows | True Positive | T1110.003 · T1078 · T1021.001 · T1036.005 · T1070.004 |
+| **[30 Incidents, 19 Attackers, 1 Noisy Rule: Triaging a Password-Spray Queue](05-triage-and-tuning-password-spray-queue.md)**: paused the alert flood, investigated one incident end to end, triaged the rest by attacker (19 IPs, 21 servers broken into), then fixed my rule so one break-in creates one alert instead of up to 168 | Windows | True Positive | T1110.003 · T1078 · T1021.001 · T1057 |
 
 ---
 
