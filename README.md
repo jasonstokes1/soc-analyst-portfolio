@@ -14,11 +14,12 @@
 | 💣 | **[Ransomware Attack Chain + Device Isolation](02-ransomware-simulation.md)** | Windows | Benign Positive (simulation); critical in production | T1053 · T1059.001 · T1105 · T1486 |
 | 🐧 | **[Tool Download on a Linux Server](03-linux-tool-download.md)** | Linux | Benign Positive (scheduled test) | T1105 |
 | 🧨 | **[A Stolen Admin Password, a Disguised Hacking Tool, and a Detection Gap](04-password-spray-to-malware.md)**: one IP guessed the admin password on 5 servers; four others used it; a brute-force tool disguised as Chrome turned a server into an attacker | Windows | True Positive | T1110.003 · T1078 · T1021.001 · T1036.005 · T1070.004 |
+| 📥 | **[30 Incidents, 19 Attackers, 1 Noisy Rule: Triaging a Password-Spray Queue](05-triage-and-tuning-password-spray-queue.md)**: paused the alert flood, investigated one incident end to end, triaged the rest by attacker (19 IPs, 21 servers broken into), then fixed my rule so one break-in creates one alert instead of up to 168 | Windows | True Positive | T1110.003 · T1078 · T1021.001 · T1057 |
 
 ---
 
 ## Skills demonstrated
 
-**Detection engineering** (3 custom Sentinel analytics rules, including one built to close a gap I found) · **incident triage and classification** · **KQL threat hunting** · **threat intelligence enrichment** (IP and file-hash lookups, VirusTotal) · **malware identification by hash** · **process-tree and parent-process analysis** · **time correlation** · **containment** (Defender device isolation) · **Windows and Linux telemetry** · **MITRE ATT&CK mapping**.
+**Detection engineering** (3 custom Sentinel analytics rules, including one built to close a gap I found) · **detection tuning** (cut repeat alerts to one per break-in) · **incident triage and classification**, including **bulk triage by attacker** · **KQL threat hunting** · **threat intelligence enrichment** (IP and file-hash lookups, VirusTotal) · **malware identification by hash** · **process-tree and parent-process analysis** · **time correlation** · **containment** (Defender device isolation) · **Windows and Linux telemetry** · **MITRE ATT&CK mapping**.
 
 <sub>Cyber-range exercises; no real victims. Screenshots redacted.</sub>
